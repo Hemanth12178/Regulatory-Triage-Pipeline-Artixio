@@ -1,0 +1,29 @@
+# PostgreSQL for the Regulatory Triage Pipeline.
+#
+#   docker compose up -d        start Postgres in the background
+#   docker compose down         stop it (data is kept in the named volume)
+#   docker compose down -v      stop it and delete all data
+#
+# The credentials below match the default DATABASE_URL in backend/app/db.py,
+# so no configuration is needed: start this, then `python seed.py`.
+
+services:
+  db:
+    image: postgres:16
+    container_name: regulatory-postgres
+    environment:
+      POSTGRES_USER: regulatory
+      POSTGRES_PASSWORD: regulatory
+      POSTGRES_DB: regulatory
+    ports:
+      - "5432:5432"
+    volumes:
+      - regulatory_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U regulatory -d regulatory"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  regulatory_pgdata:

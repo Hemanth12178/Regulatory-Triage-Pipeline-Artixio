@@ -53,6 +53,7 @@ export function buildQuery(filters: Filters): string {
   filters.quality.forEach((v) => params.append("quality", v));
   filters.flag.forEach((v) => params.append("flag", v));
   filters.owner.forEach((v) => params.append("owner", v));
+  filters.owner_status.forEach((v) => params.append("owner_status", v));
   if (filters.only_open) params.set("only_open", "true");
   params.set("sort", filters.sort);
   params.set("order", filters.order);

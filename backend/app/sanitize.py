@@ -152,6 +152,8 @@ _SEVERITY_ALIASES = {
     "critical": Severity.CRITICAL,
     "blocker": Severity.CRITICAL,
     "urgent": Severity.CRITICAL,
+    "extreme": Severity.CRITICAL,
+    "catastrophic": Severity.CRITICAL,
     "4": Severity.CRITICAL,
 }
 

@@ -112,9 +112,13 @@ def list_directives(
         list[str] | None,
         Query(description=f"Action item owner; {UNASSIGNED} matches items with no owner"),
     ] = None,
+    owner_status: Annotated[
+        list[ActionStatus] | None,
+        Query(description="Owner status: the status of the owner's action items"),
+    ] = None,
     only_open: Annotated[bool, Query(description="Only directives with open action items")] = False,
     sort: Annotated[
-        Literal["deadline", "published", "severity", "quality", "authority", "reference"],
+        Literal["number", "deadline", "published", "severity", "quality", "authority", "reference"],
         Query(),
     ] = "quality",
     order: Annotated[Literal["asc", "desc"], Query()] = "asc",
@@ -139,6 +143,16 @@ def list_directives(
     if severity:
         wanted_sev = {s.value for s in severity}
         rows = [r for r in rows if r["severity"] in wanted_sev]
+
+    if owner_status:
+        # Keep a directive when any of its action items is in one of the wanted
+        # states - "show me everything with blocked work", etc.
+        wanted_owner_status = {s.value for s in owner_status}
+        rows = [
+            r
+            for r in rows
+            if any(item["status"] in wanted_owner_status for item in r["action_items"])
+        ]
 
     if quality:
         wanted_quality = set(quality)
@@ -208,6 +222,7 @@ def list_directives(
     # deadline is not "the most urgent", it is unschedulable.
     far_future = date.max.isoformat()
     key_funcs = {
+        "number": lambda r: (r["id"],),
         "deadline": lambda r: (r["deadline"] is None, r["deadline"] or far_future),
         "published": lambda r: (r["published_at"] is None, r["published_at"] or far_future),
         "severity": lambda r: (SEVERITY_ORDER.get(r["severity"], 99), r["id"]),

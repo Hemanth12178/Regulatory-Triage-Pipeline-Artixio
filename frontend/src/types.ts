@@ -130,8 +130,10 @@ export interface Filters {
   quality: Quality[];
   flag: string[];
   owner: string[];
+  /** Action-item status (the owner's work state): PENDING, IN_PROGRESS, … */
+  owner_status: string[];
   only_open: boolean;
-  sort: "quality" | "deadline" | "published" | "severity" | "authority" | "reference";
+  sort: "number" | "quality" | "deadline" | "published" | "severity" | "authority" | "reference";
   order: "asc" | "desc";
   page: number;
   page_size: number;
@@ -145,8 +147,9 @@ export const DEFAULT_FILTERS: Filters = {
   quality: [],
   flag: [],
   owner: [],
+  owner_status: [],
   only_open: false,
-  sort: "quality",
+  sort: "number",
   order: "asc",
   page: 1,
   page_size: 25,

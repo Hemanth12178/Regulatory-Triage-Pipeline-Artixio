@@ -362,9 +362,10 @@ def build_messy_directives(authorities: dict[str, Authority]) -> list[Directive]
         )
     )
 
-    # EDGE CASE 6 - status code nobody recognises, severity nobody recognises,
-    # and a reference code that is missing entirely.
-    # Expect: UNKNOWN_STATUS (error), UNKNOWN_SEVERITY (warning),
+    # EDGE CASE 6 - status code nobody recognises, a severity synonym we do
+    # normalise ("catastrophic" -> CRITICAL), and a reference code that is
+    # missing entirely.
+    # Expect: UNKNOWN_STATUS (error), NORMALISED_SEVERITY (warning),
     #         MISSING_FIELD on reference_code (error).
     rows.append(
         Directive(
@@ -665,12 +666,35 @@ def build_messy_directives(authorities: dict[str, Authority]) -> list[Directive]
              published_at_raw=day(-60), effective_date_raw=day(-10), deadline_raw=None,
              owner="K. O'Brien", item_status="IN_PROGRESS", priority_raw="MEDIUM", due_raw=day(25)),
         # UNKNOWN_SEVERITY - a severity word the vocabulary does not contain.
+        # ("extreme"/"catastrophic" are CRITICAL aliases, so this uses a word
+        # that genuinely maps to nothing.)
         dict(flag="UNKNOWN_SEVERITY", authority="TGA", reference_code="TGA-2026-0221",
              title="Biologicals framework classification review",
              summary="Reassessment of class 2 and class 3 biologicals against the new rules.",
-             raw_status="PROPOSED", raw_severity="extreme", category="Market Authorisation",
+             raw_status="PROPOSED", raw_severity="showstopper", category="Market Authorisation",
              published_at_raw=day(-15), effective_date_raw=day(70), deadline_raw=day(150),
              owner="M. Rossi", item_status="PENDING", priority_raw="HIGH", due_raw=day(120)),
+        # UNKNOWN_SEVERITY - two levels at once is not a value we recognise.
+        dict(flag="UNKNOWN_SEVERITY", authority="EMA", reference_code="EMA/CHMP/55310/2026",
+             title="Nitrosamine impurity re-testing scope clarification",
+             summary="Scope of the re-testing obligation across legacy marketing authorisations.",
+             raw_status="ACTIVE", raw_severity="high/low", category="Quality & CMC",
+             published_at_raw=day(-20), effective_date_raw=day(25), deadline_raw=day(95),
+             owner="A. Fernandes", item_status="IN_PROGRESS", priority_raw="HIGH", due_raw=day(70)),
+        # UNKNOWN_SEVERITY - a prose value ("medium and critical") we cannot place.
+        dict(flag="UNKNOWN_SEVERITY", authority="FDA", reference_code="FDA-2026-0914",
+             title="Combination product postmarket safety reporting update",
+             summary="Aligned reporting timelines for drug-device combination products.",
+             raw_status="PENDING", raw_severity="medium and critical", category="Pharmacovigilance",
+             published_at_raw=day(-12), effective_date_raw=day(40), deadline_raw=day(110),
+             owner="R. Mehta", item_status="PENDING", priority_raw="CRITICAL", due_raw=day(85)),
+        # MISSING_SEVERITY - no level supplied at all; treated as UNKNOWN.
+        dict(flag="MISSING_SEVERITY", authority="MHRA", reference_code="MHRA-2026-0410",
+             title="Registered pharmacy premises standards refresh",
+             summary="Updated premises and governance standards for registered pharmacies.",
+             raw_status="ACTIVE", raw_severity="", category="Inspections & GMP",
+             published_at_raw=day(-30), effective_date_raw=day(15), deadline_raw=day(100),
+             owner="K. O'Brien", item_status="PENDING", priority_raw="MEDIUM", due_raw=day(75)),
         # SHOUTING_TEXT - an all-caps title that gets case-normalised.
         dict(flag="SHOUTING_TEXT", authority="HC", reference_code="HC-2026-0019",
              title="IMPORTANT UPDATE TO MEDICAL DEVICE LICENCE RENEWAL OBLIGATIONS",

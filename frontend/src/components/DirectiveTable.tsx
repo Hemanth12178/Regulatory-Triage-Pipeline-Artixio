@@ -116,12 +116,13 @@ export function DirectiveTable({
         // A right chevron: clicking the row opens its detail in the side panel.
         cell: () => "›",
       }),
-      column.display({
+      column.accessor("id", {
         id: "sno",
-        header: () => "#",
-        // Serial number across the whole result set, not just this page, so it
-        // keeps counting up as the user pages through.
-        cell: (ctx) => (filters.page - 1) * filters.page_size + ctx.row.index + 1,
+        header: () => "ID",
+        // The directive's own stable id, so the number stays fixed no matter how
+        // the result set is filtered, sorted, or paged.
+        cell: (ctx) => ctx.getValue(),
+        meta: { sort: "number" as const },
       }),
       column.accessor("reference_code", {
         header: () => "Reference",
@@ -190,7 +191,7 @@ export function DirectiveTable({
         cell: (ctx) => <FlagStrip flags={allFlags(ctx.row.original)} />,
       }),
     ],
-    [filters.page, filters.page_size],
+    [],
   );
 
   const table = useReactTable({

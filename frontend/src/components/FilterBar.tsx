@@ -22,7 +22,21 @@ const MULTI = "__multi__";
 const ANY_FLAG = "ANY";
 
 /** Dimensions that count towards the badge. Search is its own control. */
-const FILTER_KEYS = ["authority", "status", "severity", "quality", "flag", "owner"] as const;
+const FILTER_KEYS = [
+  "authority",
+  "status",
+  "severity",
+  "quality",
+  "flag",
+  "owner",
+  "owner_status",
+] as const;
+
+/** "IN_PROGRESS" -> "In progress" for the owner-status dropdown and chips. */
+function humaniseStatus(value: string): string {
+  const spaced = value.replace(/_/g, " ").toLowerCase();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
 
 export function activeFilterCount(filters: Filters): number {
   return (
@@ -157,7 +171,7 @@ export function FilterBar({
    * reads like a narrowing AND when it actually widens the result.
    */
   const chipFor = (
-    key: "authority" | "status" | "severity" | "owner" | "quality" | "flag",
+    key: "authority" | "status" | "severity" | "owner" | "quality" | "flag" | "owner_status",
     caption: string,
     render: (value: string) => string = (v) => v,
   ) => {
@@ -176,6 +190,7 @@ export function FilterBar({
     ...chipFor("status", "status"),
     ...chipFor("severity", "severity"),
     ...chipFor("owner", "owner", ownerLabel),
+    ...chipFor("owner_status", "owner status", humaniseStatus),
     ...chipFor("quality", "quality"),
     ...chipFor("flag", "flag", (code) =>
       code === ANY_FLAG ? "any flag" : code.toLowerCase().replace(/_/g, " "),
@@ -250,6 +265,18 @@ export function FilterBar({
                     value: o.value,
                     label: `${o.label} (${o.open_items} open)`,
                   }))}
+                />
+
+                <Field
+                  label="Owner status"
+                  placeholder="Any owner status"
+                  values={filters.owner_status}
+                  onChange={(value) => setOne("owner_status", value)}
+                  // UNKNOWN is a corrupt/missing status, not a real owner state,
+                  // so it is not offered as a filter choice.
+                  options={vocabulary.action_status
+                    .filter((s) => s !== "UNKNOWN")
+                    .map((s) => ({ value: s, label: humaniseStatus(s) }))}
                 />
 
                 <Field
